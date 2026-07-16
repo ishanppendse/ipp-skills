@@ -1,0 +1,12 @@
+{
+  "name": "understanding",
+  "description": "Skills that turn dense code and concepts into structured, navigable explanations — interactive box-diagrams of code and semantic structure-aware diffs. For when you want to understand, not just read.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Ishan Pendse"
+  },
+  "homepage": "https://github.com/ishanppendse/ipp-skills",
+  "repository": "https://github.com/ishanppendse/ipp-skills",
+  "license": "MIT",
+  "keywords": ["code-understanding", "comprehension", "diagram", "diff", "code-review", "learning"]
+}

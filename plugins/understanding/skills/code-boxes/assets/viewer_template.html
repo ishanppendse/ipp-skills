@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>__TITLE__</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d; --border-hi: #58a6ff;
+    --text: #c9d1d9; --dim: #8b949e; --accent: #58a6ff; --green: #3fb950;
+    --red: #f85149; --yellow: #d29922; --mono: "SF Mono", "Fira Code", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, "Segoe UI", sans-serif;
+         margin: 0; padding: 24px; font-size: 14px; }
+  h1 { font-size: 18px; font-weight: 600; margin: 0 0 4px 0; }
+  .subtitle { color: var(--dim); font-size: 13px; margin-bottom: 20px; font-family: var(--mono); }
+
+  .box { border: 1px solid var(--border); border-radius: 8px; background: var(--panel);
+         margin: 6px 0; overflow: hidden; }
+  .box.expanded { border-color: var(--border-hi); }
+  .box-header { display: flex; align-items: baseline; gap: 10px; padding: 8px 12px;
+                cursor: pointer; user-select: none; flex-wrap: wrap; }
+  .box-header:hover { background: #1c2129; }
+  .caret { color: var(--dim); font-size: 11px; width: 12px; display: inline-block;
+           transition: transform 0.15s; }
+  .expanded > .box-header .caret { transform: rotate(90deg); }
+  .box.leaf > .box-header { cursor: pointer; }
+  .box.leaf > .box-header .caret { opacity: 0.35; }
+  .box-name { font-family: var(--mono); font-weight: 600; color: var(--accent); font-size: 14px; }
+  .one-liner { color: var(--dim); font-size: 12.5px; }
+  .io-chip { font-family: var(--mono); font-size: 11px; color: var(--dim);
+             background: #21262d; padding: 1px 7px; border-radius: 10px; }
+
+  .box-detail { display: none; padding: 4px 12px 12px 12px; border-top: 1px solid var(--border); }
+  .expanded > .box-detail { display: block; }
+
+  .io-section { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0; }
+  .io-col h4 { margin: 0 0 4px 0; font-size: 11px; text-transform: uppercase;
+               letter-spacing: 0.5px; color: var(--dim); }
+  .io-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .io-table td { padding: 3px 8px 3px 0; vertical-align: top; }
+  .io-name { font-family: var(--mono); color: var(--text); white-space: nowrap; }
+  .io-shape { font-family: var(--mono); color: var(--green); white-space: nowrap; }
+  .io-meaning { color: var(--dim); }
+
+  .ops { margin: 10px 0; }
+  .ops h4 { margin: 0 0 4px 0; font-size: 11px; text-transform: uppercase;
+            letter-spacing: 0.5px; color: var(--dim); }
+  .op-line { font-family: var(--mono); font-size: 13px; color: var(--yellow);
+             padding: 2px 0 2px 12px; border-left: 2px solid var(--border); margin: 2px 0; }
+
+  .meta-line { font-size: 11.5px; color: var(--dim); font-family: var(--mono); margin-top: 8px; }
+  .meta-line a { color: var(--accent); }
+  .meta-line a.source-link { text-decoration: none; border-bottom: 1px dashed var(--border-hi); }
+  .meta-line a.source-link:hover { color: var(--green); border-bottom-color: var(--green); }
+
+  .graph-container { position: relative; margin-top: 12px; padding: 8px 0; }
+  .graph-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+               pointer-events: none; z-index: 0; }
+  .graph-layers { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 34px; }
+  .graph-row { display: flex; gap: 16px; justify-content: center; align-items: flex-start;
+               flex-wrap: wrap; }
+  .graph-row .box { min-width: 220px; max-width: 560px; flex: 0 1 auto; margin: 0; }
+  .edge-path { stroke: #6e7681; stroke-width: 1.5; fill: none; opacity: 0.85;
+               marker-end: url(#arrow); }
+  .edge-label { font-family: var(--mono); font-size: 10.5px; fill: var(--dim); }
+
+  .controls { margin-bottom: 14px; display: flex; gap: 8px; }
+  .controls button { background: var(--panel); border: 1px solid var(--border); color: var(--text);
+                     border-radius: 6px; padding: 4px 12px; font-size: 12px; cursor: pointer; }
+  .controls button:hover { border-color: var(--border-hi); }
+</style>
+</head>
+<body>
+<h1 id="title"></h1>
+<div class="subtitle" id="subtitle"></div>
+<div class="controls">
+  <button onclick="setAll(true)">expand all</button>
+  <button onclick="setAll(false)">collapse all</button>
+</div>
+<div id="root"></div>
+
+<script>
+const DATA = __DATA__;
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+// Build a vscode://file link from a "path:Lstart-Lend" source string.
+// Only active when DATA.repo_root (absolute path) is set — i.e. built inside a real repo.
+// VS Code URI scheme: vscode://file/<absolute-path>:<line>[:<col>]
+function vscodeUri(source) {
+  if (!DATA.repo_root || !source) return null;
+  const m = String(source).match(/^(.*?):L?(\d+)/);   // "sub/file.py:L120-180" -> path, 120
+  if (!m) return null;
+  const rel = m[1].replace(/^\/+/, "");
+  const line = m[2];
+  const root = String(DATA.repo_root).replace(/\/+$/, "");
+  let path = rel ? root + "/" + rel : root;
+  if (!path.startsWith("/")) path = "/" + path;        // ensure vscode://file/<abs>
+  return "vscode://file" + path + ":" + line + ":1";
+}
+
+function ioSummary(node) {
+  const i = (node.inputs || []).length, o = (node.outputs || []).length;
+  const parts = [];
+  if (i) parts.push(i + " in");
+  if (o) parts.push(o + " out");
+  if (node.children && node.children.nodes && node.children.nodes.length)
+    parts.push(node.children.nodes.length + " sub");
+  return parts.join(" · ");
+}
+
+function renderIO(list, title) {
+  const col = el("div", "io-col");
+  col.appendChild(el("h4", null, title));
+  const tbl = el("table", "io-table");
+  (list || []).forEach(x => {
+    const tr = el("tr");
+    const n = el("td"); n.appendChild(el("span", "io-name", x.name)); tr.appendChild(n);
+    const s = el("td"); s.appendChild(el("span", "io-shape", x.shape || "")); tr.appendChild(s);
+    const m = el("td"); m.appendChild(el("span", "io-meaning", x.meaning || "")); tr.appendChild(m);
+    tbl.appendChild(tr);
+  });
+  col.appendChild(tbl);
+  return col;
+}
+
+function renderNode(node) {
+  const hasChildren = node.children && node.children.nodes && node.children.nodes.length > 0;
+  const box = el("div", "box" + (hasChildren ? "" : " leaf"));
+  box.dataset.nodeId = node.id;
+
+  const header = el("div", "box-header");
+  header.appendChild(el("span", "caret", "\u25B6"));
+  header.appendChild(el("span", "box-name", node.name));
+  if (node.one_liner) header.appendChild(el("span", "one-liner", node.one_liner));
+  const summary = ioSummary(node);
+  if (summary) header.appendChild(el("span", "io-chip", summary));
+  box.appendChild(header);
+
+  const detail = el("div", "box-detail");
+
+  if ((node.inputs || []).length || (node.outputs || []).length) {
+    const io = el("div", "io-section");
+    io.appendChild(renderIO(node.inputs, "inputs"));
+    io.appendChild(renderIO(node.outputs, "outputs"));
+    detail.appendChild(io);
+  }
+
+  if ((node.ops || []).length) {
+    const ops = el("div", "ops");
+    ops.appendChild(el("h4", null, "ops"));
+    node.ops.forEach(op => ops.appendChild(el("div", "op-line", op)));
+    detail.appendChild(ops);
+  }
+
+  if (node.source || node.paper) {
+    const meta = el("div", "meta-line");
+    if (node.source) {
+      const uri = vscodeUri(node.source);
+      if (uri) {
+        const a = el("a", "source-link", node.source);
+        a.href = uri;
+        a.title = "open in VS Code";
+        meta.appendChild(a);
+        meta.appendChild(document.createTextNode("  "));
+      } else {
+        meta.appendChild(document.createTextNode(node.source + "  "));
+      }
+    }
+    if (node.paper) {
+      const a = el("a", null, "paper");
+      a.href = node.paper; a.target = "_blank";
+      meta.appendChild(a);
+    }
+    detail.appendChild(meta);
+  }
+
+  if (hasChildren) {
+    detail.appendChild(renderGraph(node.children));
+  }
+
+  box.appendChild(detail);
+
+  header.addEventListener("click", (ev) => {
+    ev.stopPropagation();
+    box.classList.toggle("expanded");
+    requestAnimationFrame(drawAllEdges);
+  });
+
+  return box;
+}
+
+// layered layout: longest-path layering of the child DAG
+function layerNodes(nodes, edges) {
+  const ids = nodes.map(n => n.id);
+  const indeg = {}, adj = {};
+  ids.forEach(id => { indeg[id] = 0; adj[id] = []; });
+  (edges || []).forEach(e => {
+    if (adj[e.from] && indeg[e.to] !== undefined) { adj[e.from].push(e.to); indeg[e.to]++; }
+  });
+  const layer = {}; ids.forEach(id => layer[id] = 0);
+  const q = ids.filter(id => indeg[id] === 0);
+  const indegCopy = { ...indeg };
+  while (q.length) {
+    const u = q.shift();
+    adj[u].forEach(v => {
+      layer[v] = Math.max(layer[v], layer[u] + 1);
+      if (--indegCopy[v] === 0) q.push(v);
+    });
+  }
+  const maxL = Math.max(0, ...Object.values(layer));
+  const rows = Array.from({ length: maxL + 1 }, () => []);
+  nodes.forEach(n => rows[layer[n.id]].push(n));
+  return rows;
+}
+
+function renderGraph(children) {
+  const container = el("div", "graph-container");
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("class", "graph-svg");
+  svg.innerHTML = '<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" ' +
+    'markerWidth="6" markerHeight="6" orient="auto-start-reverse">' +
+    '<path d="M 0 0 L 10 5 L 0 10 z" fill="#6e7681"/></marker></defs>';
+  container.appendChild(svg);
+  container._edges = children.edges || [];
+
+  const layersDiv = el("div", "graph-layers");
+  const rows = layerNodes(children.nodes, children.edges);
+  rows.forEach(rowNodes => {
+    const row = el("div", "graph-row");
+    rowNodes.forEach(n => row.appendChild(renderNode(n)));
+    layersDiv.appendChild(row);
+  });
+  container.appendChild(layersDiv);
+  return container;
+}
+
+function drawAllEdges() {
+  document.querySelectorAll(".graph-container").forEach(container => {
+    const svg = container.querySelector(":scope > .graph-svg");
+    // clear old paths/labels
+    svg.querySelectorAll(".edge-path, .edge-label").forEach(p => p.remove());
+    const cRect = container.getBoundingClientRect();
+    if (cRect.width === 0) return; // hidden
+    (container._edges || []).forEach(e => {
+      const fromBox = container.querySelector(':scope [data-node-id="' + CSS.escape(e.from) + '"]');
+      const toBox = container.querySelector(':scope [data-node-id="' + CSS.escape(e.to) + '"]');
+      if (!fromBox || !toBox) return;
+      const f = fromBox.getBoundingClientRect(), t = toBox.getBoundingClientRect();
+      const x1 = f.left + f.width / 2 - cRect.left, y1 = f.bottom - cRect.top;
+      const x2 = t.left + t.width / 2 - cRect.left, y2 = t.top - cRect.top;
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      const dy = Math.max(18, (y2 - y1) / 2);
+      path.setAttribute("d", `M ${x1} ${y1} C ${x1} ${y1 + dy}, ${x2} ${y2 - dy}, ${x2} ${y2}`);
+      path.setAttribute("class", "edge-path");
+      svg.appendChild(path);
+      if (e.label) {
+        const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        txt.setAttribute("x", (x1 + x2) / 2 + 6);
+        txt.setAttribute("y", (y1 + y2) / 2);
+        txt.setAttribute("class", "edge-label");
+        txt.textContent = e.label;
+        svg.appendChild(txt);
+      }
+    });
+  });
+}
+
+function setAll(expanded) {
+  document.querySelectorAll(".box:not(.leaf)").forEach(b =>
+    b.classList.toggle("expanded", expanded));
+  requestAnimationFrame(drawAllEdges);
+}
+
+// init
+document.getElementById("title").textContent = DATA.title || "Code Boxes";
+document.getElementById("subtitle").textContent = DATA.subtitle || "";
+const rootDiv = document.getElementById("root");
+const rootBox = renderNode(DATA.root);
+rootBox.classList.add("expanded");
+rootDiv.appendChild(rootBox);
+window.addEventListener("resize", drawAllEdges);
+requestAnimationFrame(drawAllEdges);
+</script>
+</body>
+</html>
