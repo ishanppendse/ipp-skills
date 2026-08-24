@@ -8,8 +8,8 @@
     {
       "name": "understanding",
       "source": "./plugins/understanding",
-      "description": "Skills that turn dense code and concepts into structured, navigable explanations — interactive box-diagrams of code and semantic structure-aware diffs. For when you want to understand, not just read.",
-      "version": "0.1.0",
+      "description": "Skills that turn dense code and concepts into structured, navigable explanations — interactive box-diagrams of code, semantic structure-aware diffs, and annotated line-by-line traces of your own source. For when you want to understand, not just read.",
+      "version": "0.2.0",
       "category": "understanding",
       "tags": ["code-understanding", "comprehension", "diagram", "diff", "code-review"],
       "author": {
