@@ -56,8 +56,12 @@ set of files wastes the user's time and yours.
 
 ### 2. Gather context
 
-Read every file in scope fully before annotating any of them. Blocks in one file
-are often only explainable in terms of what a sibling file does.
+Read every file in scope before annotating any of them. Blocks in one file are often
+only explainable in terms of what a sibling file does.
+
+For files too large to read in one call, read them in successive chunks (offset +
+limit) until you have the whole thing. Never annotate a file you have only partly
+read — a trace written from the first 500 lines will invent the meaning of the rest.
 
 Also pull in anything that already explains this repo: earlier turns in this
 session, memory files about the repo, `CLAUDE.md`, READMEs, docstrings, design
@@ -85,12 +89,62 @@ arbitrary, keep the ones the architecture fixes.
 Declare it in a comment at the very top of each traced file, before the imports.
 Every line trace in that file refers to this anchor.
 
-### 4. Write the traced copy
+### 4. Dispatch one agent per file
 
-For each file in scope, write `<name>.traced.<ext>` next to the original (or, if
-the user prefers, mirror the tree under a `traced/` directory). Keep the same
-language and extension so it stays a valid, runnable source file. Use the
-language's own comment syntax.
+The main session does the thinking; the agents do the typing. Everything above —
+scope, cross-file context, the anchor — is decided **once, in the main session**, and
+handed down. Agents must not re-derive the anchor or re-explore the repo; divergent
+anchors across files is the failure mode this ordering exists to prevent.
+
+Spawn the agents **in parallel, one per file** (all Agent calls in a single message).
+Each writes a different output file, so they never collide — no worktree isolation
+needed.
+
+Give each agent a briefing that makes re-exploration unnecessary:
+
+- **Its file**: absolute path in, absolute path out (`<name>.traced.<ext>`).
+- **The anchor**, verbatim, exactly as it will appear in the header comment.
+- **What this file does** in the system, in two or three sentences — from the reading
+  you already did.
+- **Sibling context**: what the functions it imports actually do, and what shape or
+  value they hand back, so the agent never has to open those files.
+- **The rules below**, in full. The agent has not read this skill.
+
+Require a short receipt back — output path, number of blocks commented, and anything
+it could not explain — not the file contents. Prose from ten agents will bury the
+main session in exactly the context this design is meant to save.
+
+If an agent dies, respawn it for that one file. The others are unaffected.
+
+### 5. How each agent writes its file
+
+The output goes next to the original as `<name>.traced.<ext>` (or, if the user
+prefers, mirrored under a `traced/` directory). Same language, same extension, so it
+stays a valid, runnable source file, commented in that language's own syntax.
+
+**Copy first, annotate in place.** The agent's first action is to copy the original
+to the output path:
+
+```bash
+cp path/to/model.py path/to/model.traced.py
+```
+
+Then it edits *that copy*, block by block, replacing each block's verbatim lines with
+the same lines plus comments. Never regenerate the file from scratch and never
+retype the code: a copy that is only ever edited additively is verbatim by
+construction, which is the strongest rule this skill has. Retyping a 2000-line file
+silently drops lines.
+
+**Work in chunks — always, but especially past ~1000 lines.** Read a slice of the
+file (200–400 lines), annotate every block in that slice, then move to the next
+slice. Track position by line offset, remembering that every comment line added
+pushes the remaining code to higher line numbers — re-read around the boundary rather
+than trusting stale line numbers. One chunk fully finished beats three chunks half
+done; the file on disk is valid and partially traced at every point in between, so
+an agent that dies mid-file leaves resumable work rather than garbage.
+
+Because the copy already exists on disk, an interrupted agent resumes by finding the
+first un-annotated block, not by starting over.
 
 Rules for the copy:
 
@@ -115,9 +169,9 @@ Rules for the copy:
 - **Write like someone who already understands the domain.** No "this line calls
   the reshape method". Say what the reshape *is for*.
 
-### 5. Deliver
+### 6. Deliver
 
-List the files written. Offer to go deeper on any block the user asks about — the
+Collect the agents' receipts and list the files written. Offer to go deeper on any block the user asks about — the
 traced file is a map, not the territory.
 
 ## Example
