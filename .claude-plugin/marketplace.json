@@ -11,7 +11,31 @@
       "description": "Skills that turn dense code and concepts into structured, navigable explanations — interactive box-diagrams of code, semantic structure-aware diffs, and annotated line-by-line traces of your own source. For when you want to understand, not just read.",
       "version": "0.2.0",
       "category": "understanding",
-      "tags": ["code-understanding", "comprehension", "diagram", "diff", "code-review"],
+      "tags": [
+        "code-understanding",
+        "comprehension",
+        "diagram",
+        "diff",
+        "code-review"
+      ],
+      "author": {
+        "name": "Ishan Pendse"
+      },
+      "license": "MIT"
+    },
+    {
+      "name": "sw-eng",
+      "source": "./plugins/sw-eng",
+      "description": "Everyday software-engineering skills: the passes you run on real code before it ships — starting with comments and docstrings that read as finished documentation rather than a transcript of how the code got written.",
+      "version": "0.1.0",
+      "category": "sw-eng",
+      "tags": [
+        "comments",
+        "docstrings",
+        "cleanup",
+        "code-quality",
+        "pre-pr"
+      ],
       "author": {
         "name": "Ishan Pendse"
       },

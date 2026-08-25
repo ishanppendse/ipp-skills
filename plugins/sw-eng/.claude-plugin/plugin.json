@@ -1,0 +1,19 @@
+{
+  "name": "sw-eng",
+  "description": "Everyday software-engineering skills: the passes you run on real code before it ships — starting with comments and docstrings that read as finished documentation rather than a transcript of how the code got written.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Ishan Pendse"
+  },
+  "homepage": "https://github.com/ishanppendse/ipp-skills",
+  "repository": "https://github.com/ishanppendse/ipp-skills",
+  "license": "MIT",
+  "keywords": [
+    "comments",
+    "docstrings",
+    "cleanup",
+    "code-quality",
+    "pre-pr",
+    "documentation"
+  ]
+}
