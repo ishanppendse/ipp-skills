@@ -1,6 +1,6 @@
 {
   "name": "resume",
-  "description": "Resume skills — starting with polish: shapes a one-page LaTeX resume for ML roles to researched best practices (XYZ bullets, quantified metrics, ATS-safe formatting, tailoring) and verifies every bullet fits one line by rendered width.",
+  "description": "Resume skills — starting with polish: works on your own LaTeX resume (any template) or a bundled default, shapes it to researched ML-resume best practices, and makes every bullet fill exactly one line, measured from your rendered PDF. Sets up TeX itself.",
   "version": "0.1.0",
   "author": {
     "name": "Ishan Pendse"

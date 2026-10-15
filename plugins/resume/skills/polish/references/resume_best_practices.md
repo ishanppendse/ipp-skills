@@ -2,7 +2,7 @@
 
 A practitioner-grade guide for **ML Engineer, Data Scientist, Research Scientist, and AI Engineer** roles. Sourced from university career centers (MIT, Harvard), Laszlo Bock / Google's published guidance, the Tech Interview Handbook, and ML-specific career resources. Every URL is in **Sources** at the end.
 
-> Line-width rules live in `SKILL.md` (LINE-WIDTH BUDGET). TL;DR: cventry bullets render in `\small`, target **115–120 characters** per bullet (hard ceiling ~123 before it wraps).
+> Line fit is measured, not assumed: `scripts/polish.py measure` reports each list context's char budget for *this* document (see SKILL.md, Fit).
 
 ---
 

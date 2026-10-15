@@ -1,39 +1,71 @@
 ---
 name: polish
-description: Polish a one-page LaTeX (moderncv banking) resume for ML / ML Engineer / Research roles against researched best practices — Google XYZ bullets, quantified ML metrics (accuracy/latency/throughput/scale/$), strong action verbs, ATS-safe single-column formatting, reverse-chronological section order, and research-vs-production tailoring. Use when the user wants to write, critique, or tighten resume bullets, tailor a version to a job description, fix wrapping/overflow/page-count issues, or set up a versioned resume repo. Every bullet must fit exactly one line, verified by rendered width, not character count.
+description: Polish the user's LaTeX resume (any class or template — moderncv, Jake's/article, awesome-cv, custom) for ML / ML Engineer / Research roles against researched best practices — Google XYZ bullets, quantified ML metrics, strong action verbs, ATS-safe formatting, section order, research-vs-production tailoring — and make every bullet fill exactly one line, measured from the rendered PDF of their own document. Finds their .tex, sets up missing TeX tooling with permission, or starts from a bundled template if they have none. Use when the user wants to improve, critique, tighten, or tailor a resume, fix wrapping/overflow/page count, or start a resume.
 ---
 
-# Resume Polish (moderncv, ML roles)
+# Resume Polish
 
-Goal: tight, quantified, ATS-friendly one-page resume. **One line per bullet, no awkward
-end-of-line whitespace, margins respected.**
+The user's only step is installing the plugin. Everything else — finding their resume, setting
+up TeX, measuring, editing, verifying — is this skill's job. Adapt to *their* document; never
+assume a class, margin, font, or bullet macro.
 
-## Files in this skill
-- `assets/template.tex` — moderncv `banking`/`grey`, 10pt, A4, tuned margins + name-gap patch. Placeholder content.
-- `scripts/build.sh` — `./build.sh path/to/main.tex` → `latexmk -pdf`.
-- `scripts/probe.sh` — measures rendered bullet widths (see LINE-WIDTH BUDGET).
-- `references/resume_best_practices.md` — researched ML resume guide: XYZ vs STAR, quantifying ML
-  impact, action verbs, ML-specific content (skills, end-to-end ownership, publications), formatting,
-  common ML-candidate mistakes, section ordering, research vs production tailoring, sources.
-  **Read it in full before writing or critiquing any bullet** (Workflow step 1).
+`SKILL_DIR` below = the directory containing this file.
+- `scripts/polish.py env [file.tex]` — tooling check, engine detection, missing packages.
+- `scripts/polish.py measure file.tex` — compiles into `.polish_build/` beside the source and
+  reports every bullet's rendered line count and fill, with per-context char budgets.
+- `references/resume_best_practices.md` — researched ML resume guide (XYZ vs STAR, ML metrics,
+  action verbs, ML content, formatting, common mistakes, section order, tailoring, sources).
+- `references/latex_layout.md` — generic LaTeX layout pass + per-class notes.
+- `assets/template.tex` — default template, used only when the user has no resume.
 
-Requires a TeX install with `latexmk` + `pdflatex` and the `moderncv` package (TeX Live / MacTeX).
+## What polish changes
+1. **Content** — bullets rewritten to the best-practices guide (XYZ, number, verb, no pronouns,
+   tense, JD keywords). Never invents or inflates facts.
+2. **Fit** — every bullet exactly one line, filling it (no wrap, no orphan, no big trailing gap).
+3. **Layout** — the LaTeX itself: page count, overfull boxes, spacing consistency, header
+   hierarchy, dates, links, ATS-readable text. See `references/latex_layout.md`.
 
-## Recommended repo layout
-```
-resume/
-├── CLAUDE.md              # owner-specific notes (name, roles, honesty constraints)
-├── superset.tex           # MASTER pool — every entry/bullet ever; never trimmed
-├── PROJECTS.md            # deep, detailed account of each project — bullets are distilled from it
-├── build.sh
-└── versions/<tag>/        # one self-contained folder per tailored version (main.tex + assets)
-```
-- **Superset convention:** add any new project/bullet to `superset.tex` first, then pull a subset
-  into the active version. Nothing is ever lost when a version is trimmed.
-- **Versioning:** new version = copy latest `versions/<tag>/` to a new date/company tag, then edit.
-- Post-graduation versions drop Coursework and student-only entries (e.g. Teaching Assistant).
+## 1. Find the resume
+- Search the working directory (depth ≤3, skip `.polish_build/`, `node_modules/`, `.git/`) for
+  `*.tex` containing `\documentclass`. Prefer files with resume signals (`moderncv`, `\cventry`,
+  `\resumeItem`, `awesome-cv`, sections like Experience/Education).
+- One candidate → use it, tell the user which. Several → AskUserQuestion. None → ask:
+  - "Path to your .tex?" — use it.
+  - They have a PDF/DOCX resume → extract its text (`pdftotext -layout`, or the docx skill),
+    copy `assets/template.tex` to `./resume.tex`, and port their content into it.
+  - No resume → copy `assets/template.tex` to `./resume.tex` and build it with them from scratch.
+- Before the first edit: if the file is not tracked by git, copy it to `<name>.orig.tex`.
 
-## Non-negotiables (check every version against these)
+## 2. Set up tooling (ask before installing anything)
+Run `python3 SKILL_DIR/scripts/polish.py env <file.tex>`. It reports OS, package manager,
+`latexmk`/engines/`tlmgr`/`pdftotext`, the engine the file needs, and `MISSING_FILE x.sty` lines.
+
+If something is missing, say what and why, propose the command, and get permission:
+| Missing | macOS (brew) | Debian/Ubuntu | Fedora |
+|---|---|---|---|
+| TeX + latexmk | `brew install --cask basictex` (~100 MB), then `sudo tlmgr update --self && sudo tlmgr install latexmk`; full: `brew install --cask mactex-no-gui` (~5 GB) | `sudo apt-get install -y texlive-latex-extra texlive-fonts-extra latexmk` | `sudo dnf install -y texlive-scheme-medium latexmk` |
+| `pdftotext` | `brew install poppler` | `sudo apt-get install -y poppler-utils` | `sudo dnf install -y poppler-utils` |
+| a `.sty`/`.cls` | `tlmgr search --global --file /<name>` → `sudo tlmgr install <pkg>` | `apt-file search <name>` or install `texlive-latex-extra`/`texlive-fonts-extra` | `sudo dnf install 'tex(<name>)'` |
+
+- Run non-sudo installs (e.g. `brew`) yourself once approved. `sudo` needs the user's password:
+  ask them to run it as `! <command>` so it executes in-session.
+- After BasicTeX, PATH may need `eval "$(/usr/libexec/path_helper)"` or a new shell.
+- Re-run `env` until `COMPILE: ok`. If it still fails, read the first `! ` error in
+  `.polish_build/<name>.log` and fix or report it — don't guess.
+
+## 3. Baseline
+1. Run `python3 SKILL_DIR/scripts/polish.py measure <file.tex>`.
+2. Read `references/resume_best_practices.md` in full.
+3. Read `references/latex_layout.md`, including the notes for the class in use.
+4. Report the baseline to the user: page count, overfull boxes, the budgets, and the
+   WRAPS/TIGHT/SHORT/OK counts.
+
+## 4. Polish
+Ask before any judgment call — metrics, dates, framing, what to cut — using AskUserQuestion,
+batched. If the user says a number wasn't really achieved, remove it; don't soften it. Refill the
+line with real descriptive detail.
+
+**Content.** Apply the guide. Before finalizing, check every version against these:
 - [ ] One page (students / <~8 yrs exp).
 - [ ] **Every bullet = exactly one line.** No wrap, no 2-word orphan line, no big end-of-line gap.
 - [ ] Every bullet leads with a strong **action verb** and carries a **number**.
@@ -41,78 +73,38 @@ resume/
 - [ ] Reverse-chronological in every section.
 - [ ] **No personal pronouns** ("Led team of 8," not "I led…"). Phrases, not sentences.
 - [ ] Consistent tense (past for past roles, present for current).
-- [ ] Single column, **no tables/text-boxes/images/graphics** (ATS-breakers). Submit PDF.
+- [ ] Single column, **no tables/text-boxes/images/graphics** for content (ATS-breakers). Submit PDF.
 - [ ] Skills section is keyword-rich and matches the job description's exact terms.
 
-## Workflow
-1. Read `references/resume_best_practices.md` in full. Apply it, not just the checklist above.
-2. Gather facts: read `PROJECTS.md`/source notes; ask the owner about anything ambiguous —
-   metrics, dates, framing — **before** editing (use AskUserQuestion for judgment calls).
-3. Draft bullets in XYZ form: *Accomplished X, measured by Y, by doing Z*. Strong past-tense
-   verb (present for current role), a number in nearly every bullet, no pronouns.
-4. Width-probe every new/edited bullet (`scripts/probe.sh`). Adjust until each lands in the band.
-5. Build, then check `pdfinfo main.pdf | grep Pages` = 1 and no `Overfull \hbox` in the log.
-6. Render to PNG (`pdftoppm -png -r 110 main.pdf out`) and eyeball spacing/orphans; re-run the
-   non-negotiables checklist.
+**Fit.** `measure` derives everything from the rendered PDF, so it holds for any template:
+- `BUDGET A/B/…` — one per list context (line width × font size). Lists inside entries and lists
+  directly under a section often differ in font size, so their char limits differ. Draft each
+  bullet toward its own context's `target` range; chars are a first guess only.
+- Per bullet:
+  - `WRAPS` — the bullet runs to 2+ lines; the orphan text is shown. Fix these first: cut filler, or tighten the wording.
+  - `TIGHT` — gap below ~5pt. TeX squeezed the interword spaces to fit the line. Any edit can
+    tip it into a wrap; trim a word if the spacing looks cramped.
+  - `SHORT` — fill below 88%. Add a concrete metric, method, or scope; don't pad with filler.
+  - `OK` — fills the line.
+- Each edit → re-run `measure` (it recompiles). Width is the test. `Overfull \hbox` is not:
+  a naturally wrapping bullet raises no warning.
+- Short items whose shape is fixed (skills lists, awards) can stay SHORT. Tell the user rather
+  than padding them.
 
-**Honesty rule:** if the owner says a number wasn't actually achieved, remove it — don't soften
-it. Refill the freed width with real descriptive detail.
+**Layout.** Work through `references/latex_layout.md`. Edit the preamble or macros only when
+needed, and match the file's existing style.
 
-## cventry header — bold vs italic
-`\cventry{dates}{B}{C}{city}{}{body}` in moderncv **banking** renders:
-- **C (3rd arg) = BOLD top line** (city on right) — the headline.
-- **B (2nd arg) = italic line below** (dates on right) — the subtitle.
+## 5. Verify and report
+- Final `measure`: no WRAPS, page count at target, overfull boxes not increased.
+- Render the page and look at it: `pdftoppm -png -r 110 .polish_build/<name>.pdf
+  .polish_build/page`, then Read the PNG. Check for orphans, crowding, and misalignment.
+- ATS check: run `pdftotext -layout .polish_build/<name>.pdf -` and confirm the text reads in
+  order, with nothing garbled.
+- Copy the final PDF next to the source if the user wants it there. `.polish_build/` is scratch
+  output.
+- Report: what changed in each pass, before/after counts, and anything left for the user to decide.
 
-Put the highest-signal identifier in C:
-- **Brand present** (company, lab, known advisor): `C = Role, Brand`; `B = project topic`.
-- **No brand** (personal/course project): `C = project title`; `B = "Personal Project"` /
-  `"Course Project, <course>, <school>"`.
-
-## LINE-WIDTH BUDGET — the optimization target
-Margins `left=right=1.6cm, top=bottom=0.8cm` → itemize text width **496.46pt** in both contexts:
-- **cventry bullets** (Experience/Projects) render in `\small` → ~123 char ceiling.
-- **section-level bullets** (Skills, Achievements — itemize directly under `\section`) render in
-  `\normalsize` → wider glyphs, wrap at FEWER chars. Probe these in `section` mode or you'll
-  under-estimate and get a stray word on a second line.
-
-| | chars (avg prose, `\small`) | notes |
-|---|---|---|
-| Hard ceiling | ~123 | beyond → wraps, 2–3 word orphan |
-| **Sweet spot** | **115–120** | fills line, small gap |
-| Too short | < ~100 | wasted line — add a metric/method |
-
-Character mix matters (digits, i/l/t pack tight; m/w wide), so **char count is only a first
-guess. Width is the rule.**
-
-### Verifying a bullet fits one line
-`grep "Overfull \hbox"` is **NOT** a wrap test — a bullet that wraps naturally produces zero
-overfull warnings. Measure rendered width:
-```bash
-# bullets.txt: one LaTeX-escaped bullet per line (\%, \&, $\times$, etc.)
-scripts/probe.sh bullets.txt            # Experience/Projects bullets
-scripts/probe.sh skills.txt section     # Skills/Achievements lines
-```
-Output per line: width, gap to 496.46pt, status. **WRAPS** (>496.46pt) → cut. **RISKY**
-(<5pt gap; font rounding can tip it) → trim a word. **OK** → target 15–25pt gap. **SHORT**
-(>60pt gap) → add concrete detail.
-
-If you change margins/font size, the 496.46pt constant in `probe.sh` must change too — measure
-`\linewidth` inside the itemize with `\typeout{\the\linewidth}`.
-
-## Vertical spacing knobs
-- Section gaps: `\vspace{1mm}` before each `\section` (avoid stacking negative vspaces — headers hug the section above).
-- Inter-entry gaps: `\vspace{3pt}` between `\cventry` blocks.
-- Name ↔ contact gap: moderncv hardcodes a bare `\\` in `\makehead`; the template patches it:
-  ```latex
-  \usepackage{etoolbox}
-  \makeatletter
-  \patchcmd{\makehead}{\\\addressfont}{\\[4pt]\addressfont}{}{}
-  \makeatother
-  ```
-  `\patchcmd` search args must be brace-balanced (can't match across a `{`).
-
-## Gotchas
-- **Don't** `\usepackage{hyperref}` — moderncv already loads it → "Option clash" fatal error.
-  Use `\PassOptionsToPackage` / `\hypersetup` if needed.
-- Layout is space-constrained both ways: one long Skills line wrapping can push the last line to
-  page 2; adding >~1 line of vertical space can too. **Re-check page count after every edit.**
+## Tailoring to a job
+For a pasted job description: copy the resume to `<name>_<company>.tex`, so the original stays
+the master. Then reorder and reword toward the job description's exact terms, following §9 of
+the guide. Never add skills or claims the master doesn't support.
