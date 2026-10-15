@@ -38,7 +38,7 @@ Shape a resume to researched best practices.
 
 | Skill | What it does |
 | ----- | ------------ |
-| **polish** | Point it at nothing — it finds your LaTeX resume (moderncv, Jake's, awesome-cv, custom), or starts you from a bundled template if you have none, and installs missing TeX packages after asking. Three passes: **content** (Google XYZ bullets, quantified ML metrics, action verbs, tailoring — from a researched best-practices guide; never invents numbers), **fit** (every bullet exactly one line, measured from your compiled PDF: per-context char budgets, WRAPS / TIGHT / SHORT / OK per bullet), and **layout** (page count, overfull boxes, spacing, header hierarchy, ATS-readable text). Nothing is hardcoded to one template. |
+| **polish** | Point it at nothing — it finds your LaTeX resume (moderncv, Jake's, awesome-cv, custom), or starts you from a bundled template if you have none, and installs missing TeX packages after asking. Writes to a new `<name>_polished.tex`; your original is never touched. Three passes: **content** (rewrites each bullet into Google XYZ form, splits bullets carrying two ideas into separate one-liners, asks you for missing metrics instead of inventing them; verbs and tailoring per a researched best-practices guide), **fit** (every bullet exactly one line, measured from your compiled PDF: per-context char budgets, WRAPS / TIGHT / SHORT / OK per bullet), and **layout** (page count, overfull boxes, spacing, header hierarchy, ATS-readable text). Nothing is hardcoded to one template. |
 
 *More categories (e.g. `learning`, `research`) will be added as separate plugins over time.*
 
