@@ -10,6 +10,7 @@ This repo is a Claude Code **plugin marketplace**. Skills are grouped into plugi
 /plugin marketplace add ishanppendse/ipp-skills
 /plugin install understanding@ipp-skills
 /plugin install sw-eng@ipp-skills
+/plugin install resume@ipp-skills
 ```
 
 Update later with `/plugin marketplace update ipp-skills`.
@@ -32,6 +33,13 @@ Everyday software-engineering passes you run on real code before it ships.
 | ----- | ------------ |
 | **comments-deslop** | Rewrites comments and docstrings in the files your branch touched so they read as finished documentation instead of a transcript of the session that produced them. Deletes code restatements, PR-number narration and agent TODOs; compresses the rest to motivation, invariants and shapes. Comments only — never touches code. Fans out across subagents on large diffs. |
 
+### `resume`
+Shape a resume to researched best practices.
+
+| Skill | What it does |
+| ----- | ------------ |
+| **polish** | Polishes a one-page LaTeX (moderncv `banking`) resume for ML / ML Engineer / Research roles against a researched best-practices guide: Google XYZ bullets, quantified ML metrics, strong action verbs, ATS-safe single-column formatting, section ordering and research-vs-production tailoring. Every bullet must fit exactly one line, verified by measuring rendered width against the 496.46pt line rather than counting characters (`probe.sh` reports WRAPS / RISKY / OK / SHORT per bullet). Ships a tuned template, a build script and the full best-practices reference with sources. Needs TeX Live / MacTeX with `moderncv`. |
+
 *More categories (e.g. `learning`, `research`) will be added as separate plugins over time.*
 
 ## Repo layout
@@ -49,6 +57,10 @@ plugins/
     .claude-plugin/plugin.json
     skills/
       comments-deslop/   SKILL.md + scripts/
+  resume/
+    .claude-plugin/plugin.json
+    skills/
+      polish/            SKILL.md + scripts/ + assets/ + references/
 ```
 
 Adding a new category = a new directory under `plugins/` with its own `plugin.json` and `skills/`, plus one entry in `marketplace.json`.

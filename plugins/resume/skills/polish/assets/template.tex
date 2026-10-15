@@ -1,0 +1,115 @@
+%% start of file `template.tex'.
+%% Copyright 2006-2013 Xavier Danaux (xdanaux@gmail.com).
+%
+% This work may be distributed and/or modified under the
+% conditions of the LaTeX Project Public License version 1.3c,
+% available at http://www.latex-project.org/lppl/.
+\documentclass[10pt,a4paper,serif]{moderncv}        % possible options include font size ('10pt', '11pt' and '12pt'), paper size ('a4paper', 'letterpaper', 'a5paper', 'legalpaper', 'executivepaper' and 'landscape') and font family ('sans' and 'roman')
+
+% modern themes
+\moderncvstyle{banking}                            % style options are 'casual' (default), 'classic', 'oldstyle' and 'banking'
+\moderncvcolor{grey}                                % color options 'blue' (default), 'orange', 'green', 'red', 'purple', 'grey' and 'black'
+%\renewcommand{\familydefault}{\sfdefault}         % to set the default font; use '\sfdefault' for the default sans serif font, '\rmdefault' for the default roman one, or any tex font name
+%\nopagenumbers{}                                  % uncomment to suppress automatic pare numbering for CVs longer than one page
+
+% character encoding
+\usepackage[utf8]{inputenc}                       % if you are not using xelatex ou lualatex, replace by the encoding you are using
+%\usepackage{CJKutf8}                              % if you need to use CJK to typeset your resume in Chinese, Japanese or Korean
+
+% adjust the page margins
+%\usepackage[scale=0.8]{geometry}
+ \usepackage[left=1.6cm, right=1.6cm, top=0.8cm, bottom = 0.8cm]{geometry}
+%\setlength{\hintscolumnwidth}{3cm}                % if you want to change the width of the column with the dates
+%\setlength{\makecvheadnamewidth}{10cm}           % for the 'classic' style, if you want to force the width allocated to your name and avoid line breaks. be careful though, the length is normally calculated to avoid any overlap with your personal info; use this at your own typographical risks...
+% hyperref is already loaded by moderncv; loading it again causes an "Option clash". Use \PassOptionsToPackage if you need custom options.
+% \usepackage{hyperref}
+% \hypersetup{
+%     colorlinks=true,
+%     linkcolor=blue,
+%     filecolor=magenta,      
+%     urlcolor=blue,
+% }
+\usepackage{import}
+
+\newcommand{\sectiongap}{\vspace{0mm}}
+
+% Add vertical space between the name and the contact line. moderncv's \makehead
+% (moderncvheadiii) hardcodes a bare \\ between them; patch it to \\[..] for more gap.
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd{\makehead}{\\\addressfont}{\\[4pt]\addressfont}{}{}
+\makeatother
+
+
+% personal data
+\name{First}{Last} 
+
+%\phone[fixed]{01234 123456}                    % optional, remove / comment the line if not wanted
+%\phone[fax]{+3~(456)~789~012}                      % optional, remove / comment the line if not wanted
+\email{you@example.com}
+\phone[mobile]{+1~(000) 000--0000}
+\social[linkedin][www.linkedin.com/in/yourhandle]{yourhandle}
+\social[github][www.github.com/yourhandle]{yourhandle}
+
+
+
+     
+% optional, remove / comment the line if not wanted
+%\photo[64pt][0.4pt]{picture}                       % optional, remove / comment the line if not wanted; '64pt' is the height the picture must be resized to, 0.4pt is the thickness of the frame around it (put it to 0pt for no frame) and 'picture' is the name of the picture file
+%\quote{Some quote}                                 % optional, remove / comment the line if not wanted
+
+% to show numerical labels in the bibliography (default is to show no labels); only useful if you make citations in your resume
+%\makeatletter
+%\renewcommand*{\bibliographyitemlabel}{\@biblabel{\arabic{enumiv}}}
+%\makeatother
+%\renewcommand*{\bibliographyitemlabel}{[\arabic{enumiv}]}% CONSIDER REPLACING THE ABOVE BY THIS
+
+% bibliography with mutiple entries
+%\usepackage{multibib}
+%\newcites{book,misc}{{Books},{Others}}
+%----------------------------------------------------------------------------------
+%            content
+%----------------------------------------------------------------------------------
+\begin{document}
+\makecvtitle
+\vspace{-27pt}
+
+\section{Education}
+\cventry{09/2023 -- 03/2025}{Master of Science in Computer Science}{University Name}{City, ST}{}{}
+\vspace{-1mm}
+\cventry{07/2019 -- 07/2023}{Bachelor of Technology in Some Engineering}{University Name}{City, Country}{}{\textit{Minor in X}}
+
+\vspace{1mm}
+\section{Experience and Projects}
+\vspace{3pt}
+
+% BRANDED entry: role + brand in 3rd arg (bold), topic in 2nd arg (italic)
+\cventry{04/2025 -- Present}{Project Topic / Team Area}{Machine Learning Engineer, Company Name}{City, ST}{}{
+\begin{itemize}
+    \item Reduced <metric> N$\times$ (before$\to$after) by <method>, using <tool/framework> across <scope>.
+    \item Shipped <system> for <models/users>, validated within <tolerance> of <baseline> on <benchmark>.
+\end{itemize}}
+
+\vspace{3pt}
+
+% UNBRANDED entry: project title in 3rd arg (bold), generic label in 2nd arg (italic)
+\cventry{01/2026 -- 04/2026}{Personal Project}{Project Title}{City, ST}{}{
+\begin{itemize}
+    \item Built <thing> with <stack> that <outcome>, improving <metric> by N\% over <baseline>.
+\end{itemize}}
+
+\vspace{1mm}
+\section{Achievements}
+\begin{itemize}
+\item Award / rank / scholarship, with scale (top N of M), year.
+\end{itemize}
+
+\vspace{1mm}
+\section{Technical Skills}
+\begin{itemize}
+    \item \textbf{Languages \& ML stack:} Python, PyTorch, ...
+    \item \textbf{ML Systems:} ...
+    \item \textbf{Other:} Git, Linux, \LaTeX
+\end{itemize}
+
+\end{document}

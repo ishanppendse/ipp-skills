@@ -40,6 +40,25 @@
         "name": "Ishan Pendse"
       },
       "license": "MIT"
+    },
+    {
+      "name": "resume",
+      "source": "./plugins/resume",
+      "description": "Resume skills — starting with polish: shapes a one-page LaTeX resume for ML roles to researched best practices (XYZ bullets, quantified metrics, ATS-safe formatting, tailoring) and verifies every bullet fits one line by rendered width.",
+      "version": "0.1.0",
+      "category": "resume",
+      "tags": [
+        "resume",
+        "cv",
+        "latex",
+        "moderncv",
+        "job-search",
+        "best-practices"
+      ],
+      "author": {
+        "name": "Ishan Pendse"
+      },
+      "license": "MIT"
     }
   ]
 }

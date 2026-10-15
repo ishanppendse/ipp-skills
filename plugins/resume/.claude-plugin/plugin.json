@@ -1,0 +1,19 @@
+{
+  "name": "resume",
+  "description": "Resume skills — starting with polish: shapes a one-page LaTeX resume for ML roles to researched best practices (XYZ bullets, quantified metrics, ATS-safe formatting, tailoring) and verifies every bullet fits one line by rendered width.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Ishan Pendse"
+  },
+  "homepage": "https://github.com/ishanppendse/ipp-skills",
+  "repository": "https://github.com/ishanppendse/ipp-skills",
+  "license": "MIT",
+  "keywords": [
+    "resume",
+    "cv",
+    "latex",
+    "moderncv",
+    "job-search",
+    "best-practices"
+  ]
+}
